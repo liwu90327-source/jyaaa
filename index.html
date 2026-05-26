@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub同步工作任务管理器</title>
+    <title>GitHub同步工作任务</title>
     <style>
         * {
             margin: 0;
@@ -11,414 +11,277 @@
             box-sizing: border-box;
             font-family: Arial, sans-serif;
         }
-
         body {
             max-width: 1000px;
-            margin: 0 auto;
-            padding: 20px;
+            margin: 20px auto;
+            padding: 0 20px;
             background: #f5f7fa;
         }
-
-        .header {
+        .title {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        .config-box {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .config-box input {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .task-section {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .task-box {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .task-box h3 {
+            color: #3498db;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 5px;
+        }
+        .add-task {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        .add-task input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .task-list {
+            list-style: none;
+        }
+        .task-item {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
+        }
+        .del-btn {
+            color: #e74c3c;
+            border: none;
+            background: none;
+            cursor: pointer;
+        }
+        .sync-btns {
+            display: flex;
             gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
         }
-
-        h1 {
-            color: #2d3748;
-            font-size: 24px;
-        }
-
-        .config-card, .task-card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            color: #4a5568;
-            font-weight: bold;
-        }
-
-        input, textarea, select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #e2e8f0;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-
         button {
             padding: 10px 20px;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
-            font-weight: bold;
-            margin-right: 10px;
-        }
-
-        .btn-primary {
-            background: #4299e1;
+            background: #3498db;
             color: white;
+            font-size: 16px;
         }
-
-        .btn-success {
-            background: #38a169;
-            color: white;
+        button:hover {
+            opacity: 0.9;
         }
-
-        .btn-danger {
-            background: #e53e3e;
-            color: white;
+        .backup-btn {
+            background: #27ae60;
         }
-
-        .task-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
+        .sync-btn {
+            background: #9b59b6;
         }
-
-        .tab-btn {
-            flex: 1;
-            background: #e2e8f0;
-            padding: 10px;
-            text-align: center;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .tab-btn.active {
-            background: #4299e1;
-            color: white;
-        }
-
-        .task-item {
-            display: flex;
-            align-items: center;
-            padding: 12px;
-            border-bottom: 1px solid #f7fafc;
-        }
-
-        .task-item.completed {
-            text-decoration: line-through;
-            color: #718096;
-            background: #f7fafc;
-        }
-
-        .task-content {
-            flex: 1;
-            margin-left: 10px;
-        }
-
-        .task-date {
-            font-size: 12px;
-            color: #a0aec0;
-            margin-top: 3px;
-        }
-
-        .task-actions {
-            display: flex;
-            gap: 5px;
-        }
-
-        .hidden {
-            display: none;
-        }
-
         .tip {
-            font-size: 12px;
-            color: #718096;
-            margin-top: 5px;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>📝 工作任务管理器</h1>
-        <div>
-            <button id="syncBtn" class="btn-primary">🔄 从GitHub同步数据</button>
-            <button id="backupBtn" class="btn-success">💾 备份到GitHub</button>
-        </div>
-    </div>
+    <h1 class="title">📅 GitHub同步工作安排</h1>
 
     <!-- GitHub配置区域 -->
-    <div class="config-card" id="configCard">
-        <h2>GitHub 配置（首次使用填写）</h2>
-        <div class="form-group">
-            <label>GitHub Token（有repo权限）</label>
-            <input type="text" id="githubToken" placeholder="gh_xxxxxxxx">
-            <div class="tip">申请地址：https://github.com/settings/tokens → 勾选repo权限</div>
-        </div>
-        <div class="form-group">
-            <label>GitHub 用户名</label>
-            <input type="text" id="githubUser" placeholder="你的GitHub昵称">
-        </div>
-        <div class="form-group">
-            <label>仓库名称（新建一个空仓库）</label>
-            <input type="text" id="githubRepo" placeholder="task-save">
-        </div>
-        <button id="saveConfigBtn" class="btn-primary">保存配置</button>
+    <div class="config-box">
+        <h3>⚙️ GitHub配置（仅首次填写）</h3>
+        <input type="text" id="token" placeholder="GitHub个人访问令牌（勾选repo权限）">
+        <input type="text" id="username" placeholder="GitHub用户名（如：zhangsan）">
+        <input type="text" id="repo" placeholder="GitHub仓库名（如：task-store）">
+        <input type="text" id="filename" placeholder="存储文件名（默认：tasks.json）" value="tasks.json">
     </div>
 
-    <!-- 任务添加区域 -->
-    <div class="task-card">
-        <div class="task-tabs">
-            <div class="tab-btn active" data-tab="today">今日任务</div>
-            <div class="tab-btn" data-tab="future">未来任务</div>
-        </div>
-
-        <div class="form-group">
-            <label>任务内容</label>
-            <textarea id="taskContent" rows="3" placeholder="请输入工作内容..."></textarea>
-        </div>
-        <div class="form-group">
-            <label>任务日期</label>
-            <input type="date" id="taskDate">
-        </div>
-        <button id="addTaskBtn" class="btn-primary">添加任务</button>
+    <!-- 同步按钮 -->
+    <div class="sync-btns">
+        <button class="backup-btn" onclick="backupToGitHub()">💾 备份任务到GitHub</button>
+        <button class="sync-btn" onclick="syncFromGitHub()">🔄 从GitHub同步任务</button>
     </div>
 
-    <!-- 任务列表 -->
-    <div class="task-card">
-        <div id="todayTaskList">
-            <h3>今日任务</h3>
-            <div id="todayList"></div>
+    <!-- 任务区域 -->
+    <div class="task-section">
+        <!-- 今日任务 -->
+        <div class="task-box">
+            <h3>今日工作安排</h3>
+            <div class="add-task">
+                <input type="text" id="todayInput" placeholder="输入今日工作内容">
+                <button onclick="addTask('today')">添加</button>
+            </div>
+            <ul class="task-list" id="todayList"></ul>
         </div>
-        <div id="futureTaskList" class="hidden">
-            <h3>未来任务</h3>
-            <div id="futureList"></div>
+
+        <!-- 未来任务 -->
+        <div class="task-box">
+            <h3>未来工作安排</h3>
+            <div class="add-task">
+                <input type="text" id="futureInput" placeholder="输入未来工作内容">
+                <button onclick="addTask('future')">添加</button>
+            </div>
+            <ul class="task-list" id="futureList"></ul>
         </div>
     </div>
+
+    <p class="tip">数据存储在你的GitHub仓库，换设备只需输入相同配置即可同步</p>
 
     <script>
-        // 全局数据
+        // 初始化任务数据
         let taskData = {
             today: [],
-            future: [],
-            config: null
+            future: []
         };
 
-        // DOM元素
-        const githubToken = document.getElementById('githubToken');
-        const githubUser = document.getElementById('githubUser');
-        const githubRepo = document.getElementById('githubRepo');
-        const saveConfigBtn = document.getElementById('saveConfigBtn');
-        const configCard = document.getElementById('configCard');
-        const syncBtn = document.getElementById('syncBtn');
-        const backupBtn = document.getElementById('backupBtn');
-        const taskContent = document.getElementById('taskContent');
-        const taskDate = document.getElementById('taskDate');
-        const addTaskBtn = document.getElementById('addTaskBtn');
-        const todayList = document.getElementById('todayList');
-        const futureList = document.getElementById('futureList');
-        const tabBtns = document.querySelectorAll('.tab-btn');
-
-        // 初始化日期
-        const today = new Date().toISOString().split('T')[0];
-        taskDate.value = today;
-
-        // 页面加载读取本地数据
-        window.onload = () => {
-            const localData = localStorage.getItem('taskData');
-            if (localData) {
-                taskData = JSON.parse(localData);
-                renderTasks();
-                if (taskData.config) configCard.classList.add('hidden');
-            }
-        };
-
-        // 保存配置
-        saveConfigBtn.onclick = () => {
-            if (!githubToken.value || !githubUser.value || !githubRepo.value) {
-                alert('请填写完整GitHub配置');
-                return;
-            }
-            taskData.config = {
-                token: githubToken.value,
-                user: githubUser.value,
-                repo: githubRepo.value
-            };
-            saveToLocal();
-            configCard.classList.add('hidden');
-            alert('配置保存成功！');
-        };
-
-        // 标签切换
-        tabBtns.forEach(btn => {
-            btn.onclick = () => {
-                tabBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                const tab = btn.dataset.tab;
-                document.getElementById('todayTaskList').classList.toggle('hidden', tab !== 'today');
-                document.getElementById('futureTaskList').classList.toggle('hidden', tab !== 'future');
-            };
-        });
+        // 页面加载时渲染本地任务
+        window.onload = renderTasks;
 
         // 添加任务
-        addTaskBtn.onclick = () => {
-            if (!taskContent.value.trim()) {
-                alert('请输入任务内容');
-                return;
-            }
-            const task = {
-                id: Date.now(),
-                content: taskContent.value.trim(),
-                date: taskDate.value,
-                completed: false
-            };
-
-            if (task.date === today) {
-                taskData.today.unshift(task);
-            } else {
-                taskData.future.unshift(task);
-            }
-
-            taskContent.value = '';
-            saveToLocal();
+        function addTask(type) {
+            const input = document.getElementById(`${type}Input`);
+            const content = input.value.trim();
+            if (!content) return;
+            
+            taskData[type].push(content);
+            input.value = '';
             renderTasks();
-        };
-
-        // 渲染任务
-        function renderTasks() {
-            todayList.innerHTML = '';
-            futureList.innerHTML = '';
-
-            // 今日任务
-            taskData.today.forEach(task => {
-                const div = createTaskElement(task);
-                todayList.appendChild(div);
-            });
-
-            // 未来任务
-            taskData.future.forEach(task => {
-                const div = createTaskElement(task);
-                futureList.appendChild(div);
-            });
         }
-
-        // 创建任务DOM
-        function createTaskElement(task) {
-            const div = document.createElement('div');
-            div.className = `task-item ${task.completed ? 'completed' : ''}`;
-            div.innerHTML = `
-                <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${task.id})">
-                <div class="task-content">
-                    ${task.content}
-                    <div class="task-date">${task.date}</div>
-                </div>
-                <div class="task-actions">
-                    <button class="btn-danger" onclick="deleteTask(${task.id})">删除</button>
-                </div>
-            `;
-            return div;
-        }
-
-        // 切换任务完成状态
-        window.toggleTask = (id) => {
-            const allTasks = [...taskData.today, ...taskData.future];
-            const task = allTasks.find(t => t.id === id);
-            if (task) task.completed = !task.completed;
-            saveToLocal();
-            renderTasks();
-        };
 
         // 删除任务
-        window.deleteTask = (id) => {
-            taskData.today = taskData.today.filter(t => t.id !== id);
-            taskData.future = taskData.future.filter(t => t.id !== id);
-            saveToLocal();
+        function deleteTask(type, index) {
+            taskData[type].splice(index, 1);
             renderTasks();
-        };
-
-        // 本地保存
-        function saveToLocal() {
-            localStorage.setItem('taskData', JSON.stringify(taskData));
         }
 
-        // 备份到GitHub
-        backupBtn.onclick = async () => {
-            if (!taskData.config) {
-                alert('请先配置GitHub信息！');
+        // 渲染任务到页面
+        function renderTasks() {
+            // 渲染今日任务
+            const todayList = document.getElementById('todayList');
+            todayList.innerHTML = taskData.today.map((item, index) => `
+                <li class="task-item">
+                    ${item}
+                    <button class="del-btn" onclick="deleteTask('today', ${index})">×</button>
+                </li>
+            `).join('');
+
+            // 渲染未来任务
+            const futureList = document.getElementById('futureList');
+            futureList.innerHTML = taskData.future.map((item, index) => `
+                <li class="task-item">
+                    ${item}
+                    <button class="del-btn" onclick="deleteTask('future', ${index})">×</button>
+                </li>
+            `).join('');
+        }
+
+        // ---------------------- GitHub同步核心逻辑 ----------------------
+        // 获取GitHub配置
+        function getGitHubConfig() {
+            return {
+                token: document.getElementById('token').value,
+                username: document.getElementById('username').value,
+                repo: document.getElementById('repo').value,
+                filename: document.getElementById('filename').value
+            };
+        }
+
+        // 备份任务到GitHub
+        async function backupToGitHub() {
+            const { token, username, repo, filename } = getGitHubConfig();
+            if (!token || !username || !repo) {
+                alert('请先填写完整GitHub配置！');
                 return;
             }
-            try {
-                const content = btoa(unescape(encodeURIComponent(JSON.stringify(taskData, null, 2))));
-                const url = `https://api.github.com/repos/${taskData.config.user}/${taskData.config.repo}/contents/tasks.json`;
 
-                // 先获取文件SHA（用于更新）
+            try {
+                // 1. 先获取文件SHA（更新文件必需）
                 let sha = '';
                 try {
-                    const res = await fetch(url, {
-                        headers: { Authorization: `token ${taskData.config.token}` }
+                    const res = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/${filename}`, {
+                        headers: { Authorization: `token ${token}` }
                     });
-                    if (res.ok) {
-                        const data = await res.json();
-                        sha = data.sha;
-                    }
+                    const data = await res.json();
+                    sha = data.sha;
                 } catch (e) {}
 
-                const response = await fetch(url, {
+                // 2. 上传任务数据
+                const content = btoa(unescape(encodeURIComponent(JSON.stringify(taskData))));
+                const uploadRes = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/${filename}`, {
                     method: 'PUT',
                     headers: {
-                        'Authorization': `token ${taskData.config.token}`,
+                        Authorization: `token ${token}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        message: '备份任务数据',
+                        message: '备份工作任务',
                         content: content,
                         sha: sha
                     })
                 });
 
-                if (response.ok) {
-                    alert('✅ 备份成功！数据已保存到GitHub');
-                } else {
-                    alert('❌ 备份失败，请检查Token/仓库权限');
-                }
+                if (uploadRes.ok) alert('✅ 备份成功！任务已保存到GitHub');
+                else alert('❌ 备份失败，请检查配置');
             } catch (e) {
-                alert('网络错误：' + e.message);
+                alert('备份出错：' + e.message);
             }
-        };
+        }
 
-        // 从GitHub同步
-        syncBtn.onclick = async () => {
-            if (!taskData.config) {
-                alert('请先配置GitHub信息！');
+        // 从GitHub同步任务
+        async function syncFromGitHub() {
+            const { token, username, repo, filename } = getGitHubConfig();
+            if (!token || !username || !repo) {
+                alert('请先填写完整GitHub配置！');
                 return;
             }
+
             try {
-                const url = `https://api.github.com/repos/${taskData.config.user}/${taskData.config.repo}/contents/tasks.json`;
-                const res = await fetch(url, {
-                    headers: { Authorization: `token ${taskData.config.token}` }
+                // 拉取GitHub文件数据
+                const res = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/${filename}`, {
+                    headers: { Authorization: `token ${token}` }
                 });
-
-                if (!res.ok) {
-                    alert('未找到云端数据，请先备份！');
-                    return;
-                }
-
                 const data = await res.json();
-                const decodeStr = decodeURIComponent(escape(atob(data.content)));
-                taskData = JSON.parse(decodeStr);
-                saveToLocal();
+                
+                // 解码并加载任务
+                const taskStr = decodeURIComponent(escape(atob(data.content)));
+                taskData = JSON.parse(taskStr);
                 renderTasks();
-                alert('✅ 同步成功！数据已加载');
+                alert('✅ 同步成功！已加载最新任务');
             } catch (e) {
-                alert('同步失败：' + e.message);
+                alert('同步失败：未找到任务文件或配置错误');
             }
-        };
+        }
     </script>
 </body>
 </html>
